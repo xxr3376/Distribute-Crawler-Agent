@@ -1,44 +1,87 @@
 #!encoding=utf-8
-import requests
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects, Timeout
 import const
-import simplejson as json
-
-
-def json_request(url, payload, **kwargs):
-    headers = {'Content-type': 'application/json'}
-    data = json.dumps(payload)
-    return requests.post(url, data=data, headers=headers)
+import server_pool
+import daemon
+import worker
+import time
+import util
+from base_class import SubmitJob
+#from collections import deque
+import Queue
 
 class Agent(object):
-    def __init__(self, name, type_):
+    def __init__(self, token, type_, logger):
+        self.token = token
+        self.type_ = type_
+        self.logger = logger
+
+        self.logger.log('Starting, agent type: %s, token: "%s"' % (type_, token))
         #register to master
-        data = {
-            "name": name,
-            "type": type_,
-        }
+        self.pool = server_pool.ServerPool(const.SERVER_INFO, self.token, self.logger)
+        self.pool.update()
+
+        self.tasks = Queue.Queue()
+        self.answers = Queue.Queue()
+
+        self.task_getter = daemon.TaskGetter(self.tasks, self.logger, self.pool)
+        self.task_getter.start()
+
+        self.task_submitter = daemon.TaskSubmitter(self.answers, self.logger, self.pool)
+        self.task_submitter.start()
+        return
+
+    def schedule_jobs(self, task):
+        domains = {}
+        for query in task['queries']:
+            domain = util.extract_domain(query['url'])
+            if domain not in domains:
+                domains[domain] = []
+            domains[domain].append(query)
+
+        # current just give each domain to one worker
+        return domains.values()
+
+    def alive_count(self, lst):
+        alive = map(lambda x : 1 if x.isAlive() else 0, lst)
+        return sum(alive)
+
+    def post_process(self, task, answers):
+
+        pass
+
+    def one_pass(self):
+
+        begin = time.time()
+        current_task = self.tasks.get()
+        jobs = self.schedule_jobs(current_task)
+
+        self.logger.log('Task %s begin. Contains %s queries' % \
+            (current_task['id'], len(current_task['queries']))\
+        )
+        self.logger.log('Task %s dispatch %s jobs' %\
+            (current_task['id'], len(jobs))\
+        )
+
+        threads = [worker.Worker(job) for job in jobs]
+        #threads = [worker.Worker(self.tasks[0]['queries'])]
+        for thread in threads:
+            # This is for easy killing
+            thread.start()
+        while self.alive_count(threads) > 0:
+            time.sleep(const.UPDATE_INTERVAL)
+        answers = []
+        for thread in threads:
+            answers += thread.answers
+
+        submit_job = SubmitJob(current_task['id'], answers)
+        self.answers.put(submit_job)
+
+        timeuse = time.time() - begin
+        self.logger.log('Task %s is done, timeuse: %s seconds' %\
+            (current_task['id'], timeuse) \
+        )
+        return
+
+    def run(self):
         while True:
-            try:
-                r = json_request(const.SERVER_INFO, data, timeout=20)
-                r.raise_for_status()
-                self.server = r.json()
-                break
-            except (KeyboardInterrupt, SystemExit) as e:
-                raise e
-            except:
-                #retry
-                pass
-        return
-
-    def safe_request(url, **kwargs):
-        try:
-            requests(url, **kwargs)
-        except (ConnectionError, HTTPError, TooManyRedirects):
-            pass
-        except Timeout:
-            pass
-        return
-
-    def get_task():
-        r = requests.get(const.GET_TASK, timeout=20)
-        r.raise_for_status()
+            self.one_pass()
