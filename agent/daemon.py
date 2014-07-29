@@ -66,7 +66,7 @@ class TaskSubmitter(threading.Thread):
         with open(job.zip_file_path, 'rb') as f:
             r = requests.post(self.pool.upload, \
                     data=job.meta, \
-                    files={"file": ("result.json", f)}\
+                    files={"file": f}\
                 )
-
+            print r.text
             r.raise_for_status()
