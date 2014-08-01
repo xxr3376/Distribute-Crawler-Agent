@@ -52,7 +52,13 @@ class Agent(object):
     def one_pass(self):
 
         begin = time.time()
-        current_task = self.tasks.get()
+        while True:
+            try:
+                current_task = self.tasks.get(timeout=5)
+                break
+            except Queue.Empty:
+                #TODO report
+                pass
         jobs = self.schedule_jobs(current_task)
 
         self.logger.log('Task %s begin. Contains %s queries' % \

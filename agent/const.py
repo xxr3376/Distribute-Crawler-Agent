@@ -9,9 +9,9 @@ UA_POOL=[
 ]
 
 LANGUAGE_POOL=[
-        'zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4',
         'zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4',
-        'en-US,en;q=0.8',
+        #'zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4',
+        #'en-US,en;q=0.8',
 ]
 
 RETRY_CNT_PER_URL = 3
@@ -30,3 +30,8 @@ FAIL_REASON={
         'Other': 6,
 }
 VALID_EXTENSION=set(['.html', '.htm', '.json', '.js', '.txt'])
+
+### About TaskGetter/Submitter
+BASIC_WAIT_TIME = 1
+MAX_WAIT_TIME = 2**6
+QUEUE_MIN_LIMIT = 1 #when queue is shorter than this, start request

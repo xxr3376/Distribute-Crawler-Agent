@@ -2,6 +2,7 @@
 import requests
 import threading
 import time
+import const
 
 class TaskGetter(threading.Thread):
     def __init__(self, task_queue, logger, server_pool):
@@ -10,10 +11,10 @@ class TaskGetter(threading.Thread):
         self.logger = logger
         self.pool = server_pool
         self.daemon = True
-        self.sleep_time = 1
+        self.sleep_time = const.BASIC_WAIT_TIME
     def run(self):
         while True:
-            if self.task_queue.qsize() < 1:
+            if self.task_queue.qsize() < const.QUEUE_MIN_LIMIT:
                 self.get_task()
             else:
                 time.sleep(self.sleep_time)
@@ -27,15 +28,17 @@ class TaskGetter(threading.Thread):
             data = r.json()
             if self.task_validator(data):
                 self.task_queue.put(data)
-                self.sleep_time = 1
+                self.sleep_time = const.BASIC_WAIT_TIME
             else:
                 self.logger.log('receive unvalid queries')
                 raise Exception('UNVALID QUERIES')
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
+            time.sleep(self.sleep_time)
             new_time = self.sleep_time * 2
-            if new_time <= 64:
+
+            if new_time <= const.MAX_WAIT_TIME:
                 self.sleep_time = new_time
         return
 
@@ -49,24 +52,28 @@ class TaskSubmitter(threading.Thread):
         self.logger = logger
         self.pool = server_pool
         self.daemon = True
+        self.sleep_time = const.BASIC_WAIT_TIME
     def run(self):
         while True:
             job = self.answer_queue.get()
-            print 'get!!!!!!! %s' % job.query_id
             try:
                 self.submit(job)
+                self.sleep_time = const.BASIC_WAIT_TIME
                 #submit answer
                 pass
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
                 self.answer_queue.put(job)
-                time.sleep(0.5)
+                time.sleep(self.sleep_time)
+
+                new_time = self.sleep_time * 2
+                if new_time <= const.MAX_WAIT_TIME:
+                    self.sleep_time = new_time
     def submit(self, job):
         with open(job.zip_file_path, 'rb') as f:
             r = requests.post(self.pool.upload, \
                     data=job.meta, \
                     files={"file": f}\
                 )
-            print r.text
             r.raise_for_status()
