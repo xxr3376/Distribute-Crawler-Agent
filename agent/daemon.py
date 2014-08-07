@@ -34,7 +34,8 @@ class TaskGetter(threading.Thread):
                 raise Exception('UNVALID QUERIES')
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception as e:
+            print e
             time.sleep(self.sleep_time)
             new_time = self.sleep_time * 2
 
@@ -43,6 +44,9 @@ class TaskGetter(threading.Thread):
         return
 
     def task_validator(self, data):
+        #TODO
+        if data['status'] != 'OK':
+            raise Exception('No More Task!')
         return True
 
 class TaskSubmitter(threading.Thread):
@@ -59,6 +63,7 @@ class TaskSubmitter(threading.Thread):
             try:
                 self.submit(job)
                 self.sleep_time = const.BASIC_WAIT_TIME
+                print 'submit success'
                 #submit answer
                 pass
             except (KeyboardInterrupt, SystemExit):
@@ -71,9 +76,14 @@ class TaskSubmitter(threading.Thread):
                 if new_time <= const.MAX_WAIT_TIME:
                     self.sleep_time = new_time
     def submit(self, job):
+        data = job.meta
+        data['token'] = self.pool.token
+        print data
         with open(job.zip_file_path, 'rb') as f:
             r = requests.post(self.pool.upload, \
-                    data=job.meta, \
+                    data=data, \
                     files={"file": f}\
                 )
+            print r.content
+            print r.status_code
             r.raise_for_status()

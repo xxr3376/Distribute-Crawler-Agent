@@ -87,6 +87,7 @@ class Worker(threading.Thread):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception as e:
+                print e
                 retry_cnt += 1
 
                 if retry_cnt >= const.RETRY_CNT_PER_URL:

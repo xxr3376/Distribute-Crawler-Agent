@@ -3,12 +3,27 @@ import uuid
 import random
 import hashlib
 
-
 app = Flask(__name__)
 
 @app.route('/manager/register', methods=['POST'])
 def register():
     j = request.get_json(force=True)
+    print j
+    action = {
+        'type': 'start_agent',
+        'data': 'sdlkfjaslfksajflkasflkas',
+    }
+    return jsonify(status='OK', actions=[action])
+
+@app.route('/manager/heartbeat', methods=['POST'])
+def heartbeat():
+    j = request.get_json(force=True)
+    print j
+    action = {
+        'type': 'stop_agent',
+        'data': 'sdlkfjaslfksajflkasflkas',
+    }
+    return jsonify(status='OK', actions=[action])
 
 @app.route('/info')
 def info():
@@ -40,11 +55,12 @@ def upload():
   query_id = request.form['id']
 
   filename = '/home/xxr/ddd/%s.tar.gz' % uuid.uuid1().hex
+  f.save(filename)
+  f.seek(0)
+
   md5 = hashlib.md5()
   sha1 = hashlib.sha1()
 
-  f.save(filename)
-  f.seek(0)
   string = f.read()
   md5.update(string)
   sha1.update(string)

@@ -32,14 +32,30 @@ class Agent(object):
 
     def schedule_jobs(self, task):
         domains = {}
+        total = len(task['queries'])
         for query in task['queries']:
             domain = util.extract_domain(query['url'])
             if domain not in domains:
                 domains[domain] = []
             domains[domain].append(query)
-
+        result = []
+        for domain, jobs in domains.iteritems():
+            l = len(jobs)
+            if l < 2:
+                result.append(jobs)
+            elif l < 4:
+                part = int(l / 2)
+                result.append(jobs[0:part])
+                result.append(jobs[part:])
+            else:
+                part = int(l / 4)
+                for i in range(0, 4):
+                    if i < 3:
+                        result.append(jobs[part * i:part * (i + 1)])
+                    else:
+                        result.append(jobs[part * i:])
         # current just give each domain to one worker
-        return domains.values()
+        return result
 
     def alive_count(self, lst):
         alive = map(lambda x : 1 if x.isAlive() else 0, lst)
@@ -51,7 +67,7 @@ class Agent(object):
 
     def one_pass(self):
 
-        begin = time.time()
+        print 'waiting for task'
         while True:
             try:
                 current_task = self.tasks.get(timeout=5)
@@ -59,6 +75,8 @@ class Agent(object):
             except Queue.Empty:
                 #TODO report
                 pass
+        print 'task get!'
+        begin = time.time()
         jobs = self.schedule_jobs(current_task)
 
         self.logger.log('Task %s begin. Contains %s queries' % \
