@@ -6,6 +6,7 @@ import const
 import random
 import time
 from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects, Timeout
+from downloader import downloader_config
 
 class Worker(threading.Thread):
     def __init__(self, query_list, timeout=const.READ_TIMEOUT_LIMIT):
@@ -14,7 +15,6 @@ class Worker(threading.Thread):
         self.query_list = query_list
         self.timeout = timeout
         self.answers = []
-        self.session = requests.session()
 
     def run(self):
         headers = self.generate_header()
@@ -63,21 +63,18 @@ class Worker(threading.Thread):
     def crawl_query(self, query, headers):
         retry_cnt = 0
         # easy access for get data
-        def get(link):
-            r = self.session.get(link, headers=headers, timeout=self.timeout, allow_redirects=True)
-            r.raise_for_status()
-            return r
 
         result = {}
 
         result['query'] = query
-        url = query['url']
+        downloader_type = query.get('downloader', 'basic')
+        downloader = downloader_config[downloader_type]
         #each url will retry for N times
         while True:
             try:
                 redirect = True
                 while redirect:
-                    r = get(url)
+                    r = downloader(query, headers, self.timeout)
                     redirect, url = util.test_for_meta_redirections(r)
                 # already get final html
                 result['state'] = 'ok'
@@ -87,6 +84,7 @@ class Worker(threading.Thread):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except Exception as e:
+                print query['url']
                 print e
                 retry_cnt += 1
 
