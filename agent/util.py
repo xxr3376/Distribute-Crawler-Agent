@@ -18,7 +18,8 @@ def test_for_meta_redirections(r):
         if not attr:
             return False, None
         attr = attr[0]
-        wait, text = attr.split(";")
+        splited = attr.split(";")
+        wait, text = splited[:2]
         if text.lower().startswith("url="):
             url = text[4:]
             if not url.startswith('http'):

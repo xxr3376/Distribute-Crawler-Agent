@@ -72,10 +72,7 @@ class Worker(threading.Thread):
         #each url will retry for N times
         while True:
             try:
-                redirect = True
-                while redirect:
-                    r = downloader(query, headers, self.timeout)
-                    redirect, url = util.test_for_meta_redirections(r)
+                r = downloader(query, headers, self.timeout)
                 # already get final html
                 result['state'] = 'ok'
                 result['response'] = r
