@@ -30,7 +30,9 @@ FAIL_REASON={
         'WrongExtension': 5,
         'Other': 6,
 }
-VALID_EXTENSION=set(['.html', '.htm', '.json', '.js', '.txt'])
+
+#wsdl for rss
+VALID_EXTENSION=set(['.html', '.htm', '.json', '.js', '.txt', '.xml', '.wsdl'])
 
 ### About TaskGetter/Submitter
 BASIC_WAIT_TIME = 1
