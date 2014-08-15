@@ -48,8 +48,8 @@ class ServerPool(object):
 
     @property
     def control(self):
-        return self.__control[0]
+        return random.choice(self.__control)
 
     @property
     def upload(self):
-        return self.__upload[0]
+        return random.choice(self.__upload)
