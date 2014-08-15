@@ -67,7 +67,7 @@ class Agent(object):
 
     def one_pass(self):
 
-        print 'waiting for task'
+        self.logger.log('Waiting Task')
         while True:
             try:
                 current_task = self.tasks.get(timeout=5)
@@ -75,7 +75,6 @@ class Agent(object):
             except Queue.Empty:
                 #TODO report
                 pass
-        print 'task get!'
         begin = time.time()
         jobs = self.schedule_jobs(current_task)
 

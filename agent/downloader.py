@@ -11,7 +11,8 @@ def basic_downloader(query, base_headers, timeout):
     }
     if query.get('need_login', False):
         resource_id = query['resource']
-        pass
+        cookies = {} #TODO
+        arguments['cookies'] = cookies
     redirect = True
     while redirect:
         r = s.get(url, **arguments)

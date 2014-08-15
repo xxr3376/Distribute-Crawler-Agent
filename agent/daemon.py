@@ -61,14 +61,14 @@ class TaskSubmitter(threading.Thread):
         while True:
             job = self.answer_queue.get()
             try:
+                self.logger.log('Task %s is submitting' % job.query_id)
                 self.submit(job)
                 self.sleep_time = const.BASIC_WAIT_TIME
-                print 'submit success'
-                #submit answer
-                pass
+                self.logger.log('Task %s submitted!' % job.query_id)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
+                self.logger.log('Task %s submit Failed!' % job.query_id)
                 self.answer_queue.put(job)
                 time.sleep(self.sleep_time)
 
@@ -78,12 +78,10 @@ class TaskSubmitter(threading.Thread):
     def submit(self, job):
         data = job.meta
         data['token'] = self.pool.token
-        print data
         with open(job.zip_file_path, 'rb') as f:
             r = requests.post(self.pool.upload, \
                     data=data, \
                     files={"file": f}\
                 )
-            print r.content
-            print r.status_code
+            self.logger.log('Task %s submit server response: %s' % (job.query_id, r.content))
             r.raise_for_status()

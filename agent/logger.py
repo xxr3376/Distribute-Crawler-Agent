@@ -1,5 +1,6 @@
 #!encoding=utf-8
 from datetime import datetime
+import sys
 
 INFO, WARN, FATAL = range(3)
 
@@ -13,3 +14,4 @@ class Logger(object):
 
     def stdout_log(self, type_, text):
         print "[%s]%s:\t%s" % (state[type_], datetime.now(), text)
+        sys.stdout.flush()
