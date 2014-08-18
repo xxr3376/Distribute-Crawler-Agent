@@ -36,3 +36,29 @@ def json_request(url, payload, **kwargs):
 
 def extract_domain(url):
     return urlparse.urlparse(url).netloc
+
+
+from functools import update_wrapper
+def retry(times, except_callback=None, fatal_callback=None):
+    def decorator(func):
+        def wraper_func(*args, **kw):
+            error_count = 0
+            while True:
+                try:
+                    result = func(*args, **kw)
+                    break
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except Exception as e:
+                    if except_callback:
+                        except_callback(e, *args)
+                    error_count += 1
+                    if error_count >= times:
+                        if fatal_callback:
+                            result = fatal_callback(e, *args)
+                        else:
+                            result = None
+                        break
+            return result
+        return update_wrapper(wraper_func, func)
+    return decorator
