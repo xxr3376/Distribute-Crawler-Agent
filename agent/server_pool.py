@@ -10,6 +10,7 @@ class ServerPool(object):
         self.update_url = update_url
         self.__control = []
         self.__upload = []
+        self.__get_resource = []
         self.token = token
         return
     def update(self):
@@ -44,12 +45,15 @@ class ServerPool(object):
     def parse(self, data):
         self.__control = map(str, data['control_server'])
         self.__upload = map(str, data['upload_server'])
+        self.__get_resource = map(str, data['get_resource'])
         return
 
     @property
     def control(self):
         return random.choice(self.__control)
-
     @property
     def upload(self):
         return random.choice(self.__upload)
+    @property
+    def get_resource(self):
+        return random.choice(self.__get_resource)

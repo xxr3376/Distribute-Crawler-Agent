@@ -29,6 +29,8 @@ FAIL_REASON={
         'TooManyRedirects': 4,
         'WrongExtension': 5,
         'Other': 6,
+        'UnicodeDecodeError': 7,
+        'NoResourceError': 8,
 }
 
 #wsdl for rss

@@ -6,6 +6,7 @@ import const
 from util import retry
 import random
 import time
+import traceback
 
 def basic_downloader(query, base_headers, timeout):
     result = __basic_downloader(query, base_headers, timeout)
@@ -14,7 +15,7 @@ def basic_downloader(query, base_headers, timeout):
 
 def _exception(e, query, base_headers, timeout):
     print query['url']
-    print e
+    traceback.print_exc()
     time.sleep(random.random() * 5)
     return
 
@@ -35,8 +36,8 @@ def __basic_downloader(query, base_headers, timeout):
         "timeout": timeout,
         "allow_redirects": True,
     }
-    if query.get('need_login', False):
-        resource_name = query['resource']
+    if query.get('login', False):
+        resource_name = query['source']
         cookies = resource_manager.get_resource(resource_name)
         arguments['cookies'] = cookies
     redirect = True
@@ -68,13 +69,21 @@ def generate_answer(result):
         extension = util.guess_extension(r)
         if extension in const.VALID_EXTENSION:
             answer['success'] = True
-            answer['content'] = r.text
             answer['headers'] = {}
             answer['final_url'] = r.url
             for field in const.INTEREST_HEADER_FIELDS:
                 if field in r.headers:
                     answer['headers'][field] = r.headers[field]
             answer['status_code'] = r.status_code
+
+            encoding = util.guess_encoding(r, extension)
+            if not encoding:
+                answer['success'] = False
+                answer['raw_exception_text'] = 'Failed to detect encoding'
+                answer['fail_reason'] = const.FAIL_REASON['UnicodeDecodeError']
+            else:
+                r.encoding = encoding
+                answer['content'] = r.text
         else:
             answer['success'] = False
             answer['raw_exception_text'] = 'Wrong extension, this is %s' % extension

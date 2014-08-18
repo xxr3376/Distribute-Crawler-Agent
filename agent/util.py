@@ -5,11 +5,37 @@ import simplejson as json
 from urlparse import urljoin
 import requests
 import urlparse
+from bs4 import UnicodeDammit
 
 def guess_extension(r):
-    mime = magic.from_buffer(r.content, mime=True)
+    mime = ''
+    try:
+        mime = r.headers['Content-Type'].split(';')[0].strip()
+        if len(mime) <= 0:
+            raise Exception('No Mine')
+    except:
+        mime = magic.from_buffer(r.content, mime=True)
+
     extension = mimetypes.guess_extension(mime)
     return extension
+
+def guess_encoding(r, extension):
+    need_guess = False
+    try:
+        encode = r.headers['Content-Type'].split(';')[1].strip()
+        encode = encode.lstrip('charset=')
+        if len(encode) <= 0:
+            raise Exception('No Charset')
+    except:
+        need_guess = True
+    if need_guess:
+        converted = UnicodeDammit(r.content, is_html=(extension=='.html'))
+        if not converted.unicode_markup:
+            print 'Failed to detect encoding, tried [%s]' % ', '.join(converted.triedEncodings)
+            return None
+        encode = converted.original_encoding
+    return encode
+
 def test_for_meta_redirections(r):
     extension = guess_extension(r)
     if extension == '.html':
