@@ -8,6 +8,7 @@ import util
 from base_class import SubmitJob
 #from collections import deque
 import Queue
+import resource_manager
 
 class Agent(object):
     def __init__(self, token, type_, logger):
@@ -25,6 +26,8 @@ class Agent(object):
 
         self.task_getter = daemon.TaskGetter(self.tasks, self.logger, self.pool)
         self.task_getter.start()
+
+        resource_manager.init(self.pool, self.logger)
 
         self.task_submitter = daemon.TaskSubmitter(self.answers, self.logger, self.pool)
         self.task_submitter.start()
@@ -84,6 +87,8 @@ class Agent(object):
         self.logger.log('Task %s dispatch %s jobs' %\
             (current_task['id'], len(jobs))\
         )
+
+        resource_manager.new_round()
 
         threads = [worker.Worker(job) for job in jobs]
         #threads = [worker.Worker(self.tasks[0]['queries'])]
