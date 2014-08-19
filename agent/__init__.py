@@ -35,7 +35,6 @@ class Agent(object):
 
     def schedule_jobs(self, task):
         domains = {}
-        total = len(task['queries'])
         for query in task['queries']:
             domain = util.extract_domain(query['url'])
             if domain not in domains:
@@ -76,8 +75,8 @@ class Agent(object):
                 current_task = self.tasks.get(timeout=5)
                 break
             except Queue.Empty:
-                #TODO report
-                pass
+                self.logger.log('Worker is starving...')
+
         begin = time.time()
         jobs = self.schedule_jobs(current_task)
 
@@ -89,11 +88,15 @@ class Agent(object):
         )
 
         resource_manager.new_round()
+        need_remove_resource = []
+        for action in current_task.get('actions', []):
+            if action['type'] == 'update_resource':
+                need_remove_resource.append(action['data'])
+        resource_manager.remove_unvalid(need_remove_resource)
 
         threads = [worker.Worker(job) for job in jobs]
-        #threads = [worker.Worker(self.tasks[0]['queries'])]
+
         for thread in threads:
-            # This is for easy killing
             thread.start()
         while self.alive_count(threads) > 0:
             time.sleep(const.UPDATE_INTERVAL)

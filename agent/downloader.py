@@ -6,6 +6,7 @@ import const
 from util import retry
 import random
 import time
+from resource_manager import NoResourceError
 import traceback
 
 def basic_downloader(query, base_headers, timeout):
@@ -36,20 +37,26 @@ def __basic_downloader(query, base_headers, timeout):
         "timeout": timeout,
         "allow_redirects": True,
     }
+    used_cookies = None
     if query.get('login', False):
         resource_name = query['source']
         cookies = resource_manager.get_resource(resource_name)
-        arguments['cookies'] = cookies
+        arguments['cookies'] = cookies['cookies']
+        used_cookies = cookies
     redirect = True
     while redirect:
         r = s.get(url, **arguments)
         redirect, url = util.test_for_meta_redirections(r)
         r.raise_for_status()
-    return {
+    ret = {
         'query': query,
         'state': 'ok',
         'response': r,
     }
+
+    if used_cookies:
+        ret['resource_id'] = used_cookies['id']
+    return ret
 
 def judge_fail_reason(exception):
     fail_reason_map = {
@@ -57,6 +64,7 @@ def judge_fail_reason(exception):
         HTTPError: const.FAIL_REASON['HTTPError'],
         Timeout: const.FAIL_REASON['Timeout'],
         TooManyRedirects: const.FAIL_REASON['TooManyRedirects'],
+        NoResourceError: const.FAIL_REASON['NoResourceError'],
     }
     return fail_reason_map.get(type(exception), const.FAIL_REASON['Other'])
 
@@ -64,6 +72,9 @@ def generate_answer(result):
     answer = {
         'url': result['query']['url']
     }
+    if result.has_key('resource_id'):
+        answer['resource_id'] = result['resource_id']
+
     if result['state'] == 'ok':
         r = result['response']
         extension = util.guess_extension(r)

@@ -1,10 +1,16 @@
 import requests
+import Queue
+
 __resource__ = {}
 __pool = None
 logger = None
+return_queue = Queue.Queue()
+returner = None
+
 from collections import deque
 from util import retry
 import threading
+from daemon import ResourceReturner
 
 """
 Resource Item
@@ -23,9 +29,11 @@ pool: [
 """
 
 def init(pool, _logger):
-    global __pool, logger
+    global __pool, logger, returner
     __pool = pool
     logger = _logger
+    returner = ResourceReturner(return_queue, logger, __pool)
+    returner.start()
     return
 
 class NoResourceError(Exception):
@@ -98,19 +106,22 @@ def get_resource(name):
             raise NoResourceError()
 
         item = data['pool'][0]
-        ret = item['cookies']
+        ret = item
         item['quota'] -= 1
-        print 'quota!!!\t%s' % item['quota']
         if item['quota'] <= 0:
-            #TODO RETURN THIS ONE
-            data['pool'].popleft()
+            #RETURN THIS ONE
+            expired = data['pool'].popleft()
+            logger.log('Resource %s - %s Expired' % (name, expired['id']))
+            return_queue.put(expired)
+
         return ret
 
 def _fetch_exception(e, name):
-    logger.log('fetching %s got error %s' % (name, e))
+    logger.log('Fetching %s got error %s' % (name, e))
 
 @retry(times=3, except_callback=_fetch_exception)
 def fetch_resource(name):
+    logger.log('Fetching %s' % name)
     payload = { 'token': __pool.token, 'name': name}
     r = requests.get(__pool.get_resource, timeout=5, params=payload)
     r.raise_for_status()
@@ -128,3 +139,9 @@ def new_round():
 
     for name in need_to_remove:
         del __resource__[name]
+
+def remove_unvalid(need_remove):
+    for value in __resource__.itervalues():
+        new = filter(lambda x: x['id'] not in need_remove, value['pool'])
+        value['pool'] = deque(new)
+    return

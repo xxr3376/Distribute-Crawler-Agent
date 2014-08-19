@@ -40,3 +40,5 @@ VALID_EXTENSION=set(['.html', '.htm', '.json', '.js', '.txt', '.xml', '.wsdl'])
 BASIC_WAIT_TIME = 1
 MAX_WAIT_TIME = 2**6
 QUEUE_MIN_LIMIT = 1 #when queue is shorter than this, start request
+
+SERVER_READ_TIMEOUT = 10

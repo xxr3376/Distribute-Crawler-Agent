@@ -11,6 +11,7 @@ class ServerPool(object):
         self.__control = []
         self.__upload = []
         self.__get_resource = []
+        self.__pay_resource = []
         self.token = token
         return
     def update(self):
@@ -46,6 +47,7 @@ class ServerPool(object):
         self.__control = map(str, data['control_server'])
         self.__upload = map(str, data['upload_server'])
         self.__get_resource = map(str, data['get_resource'])
+        self.__pay_resource = map(str, data['pay_resource'])
         return
 
     @property
@@ -57,3 +59,6 @@ class ServerPool(object):
     @property
     def get_resource(self):
         return random.choice(self.__get_resource)
+    @property
+    def pay_resource(self):
+        return random.choice(self.__pay_resource)
