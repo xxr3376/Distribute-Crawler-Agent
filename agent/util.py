@@ -1,6 +1,6 @@
 import magic
 import mimetypes
-from lxml import html
+from lxml import html, etree
 import simplejson as json
 from urlparse import urljoin
 import requests
@@ -40,11 +40,16 @@ def test_for_meta_redirections(r):
     extension = guess_extension(r)
     if extension == '.html':
         html_tree = html.fromstring(r.text)
-        attr = html_tree.xpath("//meta[translate(@http-equiv, 'REFSH', 'refsh') = 'refresh']/@content")
+        attr = html_tree.xpath("//*[not(self::noscript)]/meta[translate(@http-equiv, 'REFSH', 'refsh') = 'refresh']/@content")
         if not attr:
             return False, None
         attr = attr[0]
         splited = attr.split(";")
+
+        # len < 2 means this ask for refresh itself
+        if len(splited) < 2:
+            return False, None
+
         wait, text = splited[:2]
         if text.lower().startswith("url="):
             url = text[4:]
