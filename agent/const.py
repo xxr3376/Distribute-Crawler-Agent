@@ -42,3 +42,5 @@ MAX_WAIT_TIME = 2**6
 QUEUE_MIN_LIMIT = 1 #when queue is shorter than this, start request
 
 SERVER_READ_TIMEOUT = 10
+
+DEFAULT_RESOURCE_QUOTA = 10

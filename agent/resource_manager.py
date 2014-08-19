@@ -11,6 +11,7 @@ from collections import deque
 from util import retry
 import threading
 from daemon import ResourceReturner
+import const
 
 """
 Resource Item
@@ -51,7 +52,7 @@ def guarantee_lock_exist(name):
 
 def decode_cookies(cookies_str):
     try:
-        cookies = dict((x.strip().split('=', 1)) for x in cookies_str.split(';'))
+        cookies = dict((x.strip().split('=', 1)) for x in filter(lambda x: '=' in x, cookies_str.split(';')))
     except:
         raise Exception('Cookies Decode Failed, origin: %s' % cookies_str)
     return cookies
@@ -72,7 +73,7 @@ def _get_new_resource(name):
         logger.log('Get New Resource of %s, ID=%s' % (name, data['rid']))
         item = {
             "id": data['rid'],
-            "quota": data.get('quota', 100),
+            "quota": data.get('quota', const.DEFAULT_RESOURCE_QUOTA),
             "cookies": decode_cookies(data['resource'])
             #"expire": None,
         }
@@ -122,7 +123,7 @@ def _fetch_exception(e, name):
 @retry(times=3, except_callback=_fetch_exception)
 def fetch_resource(name):
     logger.log('Fetching %s' % name)
-    payload = { 'token': __pool.token, 'name': name}
+    payload = { 'token': __pool.token, 'source': name}
     r = requests.get(__pool.get_resource, timeout=5, params=payload)
     r.raise_for_status()
     j = r.json()

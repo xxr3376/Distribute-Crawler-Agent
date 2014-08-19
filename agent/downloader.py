@@ -38,8 +38,9 @@ def __basic_downloader(query, base_headers, timeout):
         "allow_redirects": True,
     }
     used_cookies = None
-    if query.get('login', False):
-        resource_name = query['source']
+    options = query.get('options', {})
+    if options.get('login', False):
+        resource_name = options['source']
         cookies = resource_manager.get_resource(resource_name)
         arguments['cookies'] = cookies['cookies']
         used_cookies = cookies
