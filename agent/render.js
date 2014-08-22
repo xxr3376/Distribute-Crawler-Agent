@@ -64,15 +64,24 @@ try {
         var doc = page.evaluate(function () {
           return document.all[0].outerHTML;
         });
-        var url = page.evaluate(
-          function () {
+        var url = page.evaluate( function () {
           return document.URL;
+        });
+        var iframes = page.evaluate( function () {
+          var result = [];
+          var query = document.querySelectorAll('iframe');
+          var _len = query.length;
+          for (var i = 0; i < _len; i++) {
+            result[i] = query[i].contentDocument.all[0].outerHTML;
+          }
+          return result;
         });
         var response = response_dict[url] || {status: 200, headers: []};
 
         var answer = {
           doc: doc,
           url: url,
+          iframes: iframes,
           status_code: response.status,
           headers: response.headers,
         };

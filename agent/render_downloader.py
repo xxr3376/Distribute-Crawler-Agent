@@ -66,7 +66,7 @@ def phantom_js(query, base_headers, timeout):
 
         RENDER_PATH = os.path.join(const.BASE_DIR, 'render.js')
 
-        proc = subprocess.Popen(['phantomjs', RENDER_PATH, in_path, out_path, '--disk-cache=yes', '--max-disk-cache-size 100000'])
+        proc = subprocess.Popen(['phantomjs', RENDER_PATH, in_path, out_path, '--disk-cache=yes', '--max-disk-cache-size 100000', '--web-security=no'])
 
         while proc.poll() is None:
             time.sleep(const.UPDATE_INTERVAL)
@@ -106,6 +106,7 @@ def generate_answer(result, query):
         answer['status_code'] = result['status_code']
         answer['final_url'] = result['url']
         answer['content'] = result['doc']
+        answer['iframes'] = result['iframes']
     else:
         answer['success'] = False
         answer['raw_exception_text'] = str(result['exception'])
