@@ -105,8 +105,3 @@ def generate_answer(result):
         answer['raw_exception_text'] = str(result['exception'])
         answer['fail_reason'] = judge_fail_reason(result['exception'])
     return answer
-
-downloader_config = {
-    'basic': basic_downloader,
-    'render': None,
-}

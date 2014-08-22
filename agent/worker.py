@@ -1,9 +1,16 @@
 #!encoding=utf-8
 import threading
 import const
-from downloader import downloader_config
+import basic_downloader
+import render_downloader
 import time
 import random
+
+
+downloader_config = {
+    'basic': basic_downloader.basic_downloader,
+    'render': render_downloader.render_downloader,
+}
 
 class Worker(threading.Thread):
     def __init__(self, query_list, timeout=const.READ_TIMEOUT_LIMIT):
@@ -22,7 +29,7 @@ class Worker(threading.Thread):
         return
 
     def crawl_query(self, query, headers):
-        downloader_type = query.get('downloader', 'basic')
+        downloader_type = query.get('options', {}).get('downloader', 'basic')
         downloader = downloader_config[downloader_type]
         #each url will retry for N times
         answer = downloader(query, headers, self.timeout)

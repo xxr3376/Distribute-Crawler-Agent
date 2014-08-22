@@ -8,7 +8,15 @@ def test():
     j = request.get_json(force=True)
     worker = agent.worker.Worker([], 10)
     headers = worker.generate_header()
-    answer = agent.downloader.basic_downloader(j, headers, 10)
+    downloader_type = j.get('options', {}).get('downloader', 'basic')
+
+    downloader_config = {
+        'basic': agent.basic_downloader.basic_downloader,
+        'render': agent.render_downloader.render_downloader,
+    }
+    downloader = downloader_config[downloader_type]
+
+    answer = downloader(j, headers, 10)
     return jsonify(**answer)
 
 

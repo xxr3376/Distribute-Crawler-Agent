@@ -1,6 +1,9 @@
 SERVER_INFO='http://172.29.33.188:9001/cluster/server'
 #SERVER_INFO='http://localhost:8008/info'
 
+import os
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 UA_POOL=[
     'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.79 Safari/537.4',
     'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
@@ -17,6 +20,7 @@ LANGUAGE_POOL=[
 
 RETRY_CNT_PER_URL = 3
 READ_TIMEOUT_LIMIT = 10
+RENDER_TIMEOUT_LIMIT = 30
 
 UPDATE_INTERVAL = 0.1
 
@@ -31,6 +35,7 @@ FAIL_REASON={
         'Other': 6,
         'UnicodeDecodeError': 7,
         'NoResourceError': 8,
+        'RenderError': 9,
 }
 
 #wsdl for rss
