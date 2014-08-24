@@ -64,7 +64,7 @@ def phantom_js(query, base_headers, timeout):
             in_params.close()
         time_left = const.RENDER_TIMEOUT_LIMIT
 
-        RENDER_PATH = os.path.join(const.BASE_DIR, 'render.js')
+        RENDER_PATH = os.path.join(const.BASE_DIR, 'agent', 'render.js')
 
         proc = subprocess.Popen(['phantomjs', RENDER_PATH, in_path, out_path, '--disk-cache=yes', '--max-disk-cache-size 100000', '--web-security=no'])
 
