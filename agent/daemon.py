@@ -30,12 +30,12 @@ class TaskGetter(threading.Thread):
                 self.task_queue.put(data)
                 self.sleep_time = const.BASIC_WAIT_TIME
             else:
-                self.logger.log('receive unvalid queries')
+                self.logger.error('receive unvalid queries', extra=data)
                 raise Exception('UNVALID QUERIES')
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
-            self.logger.log('Get Task Failed, reason: %s' % e)
+            self.logger.error('Get Task Failed, reason: %s' % e)
             time.sleep(self.sleep_time)
             new_time = self.sleep_time * 2
 
@@ -61,14 +61,14 @@ class TaskSubmitter(threading.Thread):
         while True:
             job = self.answer_queue.get()
             try:
-                self.logger.log('Task %s is submitting' % job.query_id)
+                self.logger.debug('Task %s is submitting' % job.query_id)
                 self.submit(job)
                 self.sleep_time = const.BASIC_WAIT_TIME
-                self.logger.log('Task %s submitted!' % job.query_id)
+                self.logger.info('Task %s submitted!' % job.query_id)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                self.logger.log('Task %s submit Failed!' % job.query_id)
+                self.logger.error('Task %s submit Failed!' % job.query_id)
                 self.answer_queue.put(job)
                 time.sleep(self.sleep_time)
 
@@ -84,7 +84,7 @@ class TaskSubmitter(threading.Thread):
                     data=data, \
                     files={"file": f}\
                 )
-            self.logger.log('Task %s submit server response: %s' % (job.query_id, r.content))
+            self.logger.debug('Task %s submit server response: %s' % (job.query_id, r.content))
             r.raise_for_status()
 
 class ResourceReturner(threading.Thread):
@@ -104,7 +104,7 @@ class ResourceReturner(threading.Thread):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                self.logger.log('Resource %s return Failed!' % job['id'])
+                self.logger.error('Resource %s return Failed!' % job['id'])
                 self.queue.put(job)
                 time.sleep(self.sleep_time)
 
@@ -112,7 +112,7 @@ class ResourceReturner(threading.Thread):
                 if new_time <= const.MAX_WAIT_TIME:
                     self.sleep_time = new_time
     def submit(self, job):
-        self.logger.log('Resource %s is returning' % job['id'])
+        self.logger.debug('Resource %s is returning' % job['id'])
         data = {
             'token': self.pool.token,
             'rid': job['id'],
@@ -121,4 +121,4 @@ class ResourceReturner(threading.Thread):
         r.raise_for_status()
         if r.json()['status'] != 'OK':
             raise Exception('Server Response not ok')
-        self.logger.log('Resource %s returned!' % job['id'])
+        self.logger.info('Resource %s returned!' % job['id'])

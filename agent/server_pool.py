@@ -1,4 +1,3 @@
-import logger
 import traceback
 import time
 import random
@@ -18,28 +17,27 @@ class ServerPool(object):
         retry_cnt = 0
         while True:
             try:
-                self.logger.log('updating server_pool')
+                self.logger.debug('updating server_pool')
                 r = requests.get(self.update_url, timeout=10)
                 r.raise_for_status()
                 self.parse(r.json())
-                self.logger.log('update server_pool success, control_num:%s, upload_num:%s'\
+                self.logger.info('update server_pool success, control_num:%s, upload_num:%s'\
                         % (len(self.__control), len(self.__upload)) \
                     )
                 # DONE Everything
                 break
             except (KeyboardInterrupt, SystemExit) as e:
-                self.logger.log('receive kill signal, exiting')
+                self.logger.info('receive kill signal, exiting')
                 raise e
             except:
                 #retry
                 retry_cnt += 1
                 if retry_cnt < 3:
-                    self.logger.log('agent\'s info request failed, retry #%s' % retry_cnt\
-                        , logger.WARN)
-                    self.logger.log(traceback.format_exc(), logger.WARN)
+                    self.logger.info('agent\'s info request failed, retry #%s' % retry_cnt)
+                    self.logger.debug(traceback.format_exc())
                     time.sleep(random.random())
                 else:
-                    self.logger.log('agent\'s info failed too many times', logger.FATAL)
+                    self.logger.critical('agent\'s info failed too many times')
                     raise Exception('request for info failed too many time')
         return
 

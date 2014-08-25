@@ -60,7 +60,7 @@ def decode_cookies(cookies_str):
 def _get_new_resource(name):
     data = fetch_resource(name)
     if not data:
-        logger.log('Get New Resource of %s Failed' % (name))
+        logger.error('Get New Resource of %s Failed' % (name))
         if name not in __resource__:
             __resource__[name] = {
                 "name": name,
@@ -70,7 +70,7 @@ def _get_new_resource(name):
         else:
             __resource__[name]['error'] = True
     else:
-        logger.log('Get New Resource of %s, ID=%s' % (name, data['rid']))
+        logger.info('Get New Resource of %s, ID=%s' % (name, data['rid']))
         item = {
             "id": data['rid'],
             "quota": data.get('quota', const.DEFAULT_RESOURCE_QUOTA),
@@ -112,17 +112,17 @@ def get_resource(name):
         if item['quota'] <= 0:
             #RETURN THIS ONE
             expired = data['pool'].popleft()
-            logger.log('Resource %s - %s Expired' % (name, expired['id']))
+            logger.info('Resource %s - %s Expired' % (name, expired['id']))
             return_queue.put(expired)
 
         return ret
 
 def _fetch_exception(e, name):
-    logger.log('Fetching %s got error %s' % (name, e))
+    logger.error('Fetching %s got error %s' % (name, e))
 
 @retry(times=3, except_callback=_fetch_exception)
 def fetch_resource(name):
-    logger.log('Fetching %s' % name)
+    logger.debug('Fetching %s' % name)
     payload = { 'token': __pool.token, 'source': name}
     r = requests.get(__pool.get_resource, timeout=5, params=payload)
     r.raise_for_status()

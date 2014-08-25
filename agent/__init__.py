@@ -16,7 +16,7 @@ class Agent(object):
         self.type_ = type_
         self.logger = logger
 
-        self.logger.log('Starting, agent type: %s, token: "%s"' % (type_, token))
+        self.logger.info('Starting, agent type: %s, token: "%s"' % (type_, token))
         #register to master
         self.pool = server_pool.ServerPool(const.SERVER_INFO, self.token, self.logger)
         self.pool.update()
@@ -69,21 +69,21 @@ class Agent(object):
 
     def one_pass(self):
 
-        self.logger.log('Waiting Task')
+        self.logger.info('Waiting Task')
         while True:
             try:
                 current_task = self.tasks.get(timeout=5)
                 break
             except Queue.Empty:
-                self.logger.log('Worker is starving...')
+                self.logger.warning('Worker is starving...')
 
         begin = time.time()
         jobs = self.schedule_jobs(current_task)
 
-        self.logger.log('Task %s begin. Contains %s queries' % \
+        self.logger.info('Task %s begin. Contains %s queries' % \
             (current_task['id'], len(current_task['queries']))\
         )
-        self.logger.log('Task %s dispatch %s jobs' %\
+        self.logger.info('Task %s dispatch %s jobs' %\
             (current_task['id'], len(jobs))\
         )
 
@@ -108,7 +108,7 @@ class Agent(object):
         self.answers.put(submit_job)
 
         timeuse = time.time() - begin
-        self.logger.log('Task %s is done, timeuse: %s seconds' %\
+        self.logger.info('Task %s is done, timeuse: %s seconds' %\
             (current_task['id'], timeuse) \
         )
         return
