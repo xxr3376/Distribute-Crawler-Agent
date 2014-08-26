@@ -73,7 +73,7 @@ def _get_new_resource(name):
         logger.info('Get New Resource of %s, ID=%s' % (name, data['rid']))
         item = {
             "id": data['rid'],
-            "quota": data.get('quota', const.DEFAULT_RESOURCE_QUOTA),
+            "quota": data.get('times', const.DEFAULT_RESOURCE_QUOTA),
             "cookies": decode_cookies(data['resource'])
             #"expire": None,
         }
