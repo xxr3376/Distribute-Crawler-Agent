@@ -56,7 +56,7 @@ try {
       var now = Date.now();
       var diff = now - last_update;
       console.log('diff:', diff);
-      var left = 2000 - diff;
+      var left = 4000 - diff;
       if (left > 0) {
         setTimeout(wait, left);
       }
