@@ -16,7 +16,7 @@ try {
   input_file.close();
 
   if (argument['cookies']) {
-    for (key in argument['cookies']) {
+    for (var key in argument['cookies']) {
       phantom.addCookie({
         name: key,
         value: argument['cookies'][key],
