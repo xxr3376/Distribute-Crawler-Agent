@@ -21,10 +21,10 @@ console.setLevel(logging.DEBUG)
 console.setFormatter(formatter)
 logger.addHandler(console)
 
-remote = logstash.LogstashHandler(const.LOGSTASH_HOST, const.LOGSTASH_PORT, version=1)
-remote.setLevel(logging.INFO)
-remote.setFormatter(formatter)
-logger.addHandler(remote)
+#remote = logstash.LogstashHandler(const.LOGSTASH_HOST, const.LOGSTASH_PORT, version=1)
+#remote.setLevel(logging.INFO)
+#remote.setFormatter(formatter)
+#logger.addHandler(remote)
 
 client = agent.Agent(sys.argv[1], 'normal', logger)
 

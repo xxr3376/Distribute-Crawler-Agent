@@ -122,3 +122,14 @@ class ResourceReturner(threading.Thread):
         if r.json()['status'] != 'OK':
             raise Exception('Server Response not ok')
         self.logger.info('Resource %s returned!' % job['id'])
+
+class ServerPoolUpdater(threading.Thread):
+    def __init__(self, pool, logger):
+        super(ServerPoolUpdater, self).__init__()
+        self.logger = logger
+        self.pool = pool
+        self.daemon = True
+    def run(self):
+        while True:
+            time.sleep(const.SERVER_POOL_UPDATE_INTERVAL)
+            self.pool.update()

@@ -41,7 +41,7 @@ def control():
   with open('/home/xxr/url.list') as f:
       queries = map(lambda x: {'url': x, 'login': True, 'source': 'weibo'}, filter(lambda x: x, map(lambda x: x.strip(), f.readlines())))
   #queries = random.sample(queries, 1)
-  queries = [queries[0]]
+  queries = queries[0:100]
 
   data = {
       'status': 'OK',

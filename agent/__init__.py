@@ -31,6 +31,9 @@ class Agent(object):
 
         self.task_submitter = daemon.TaskSubmitter(self.answers, self.logger, self.pool)
         self.task_submitter.start()
+
+        self.pool_updater = daemon.ServerPoolUpdater(self.pool, self.logger)
+        self.pool_updater.start()
         return
 
     def schedule_jobs(self, task):

@@ -2,6 +2,7 @@ import traceback
 import time
 import random
 import requests
+import threading
 
 class ServerPool(object):
     def __init__(self, update_url, token, logger):
@@ -9,6 +10,7 @@ class ServerPool(object):
         self.update_url = update_url
         self.__control = []
         self.__upload = []
+        self.lock = threading.Lock()
         self.__get_resource = []
         self.__pay_resource = []
         self.token = token
@@ -42,21 +44,26 @@ class ServerPool(object):
         return
 
     def parse(self, data):
-        self.__control = map(str, data['control_server'])
-        self.__upload = map(str, data['upload_server'])
-        self.__get_resource = map(str, data['get_resource'])
-        self.__pay_resource = map(str, data['pay_resource'])
+        with self.lock:
+            self.__control = map(str, data['control_server'])
+            self.__upload = map(str, data['upload_server'])
+            self.__get_resource = map(str, data['get_resource'])
+            self.__pay_resource = map(str, data['pay_resource'])
         return
 
     @property
     def control(self):
-        return random.choice(self.__control)
+        with self.lock:
+            return random.choice(self.__control)
     @property
     def upload(self):
-        return random.choice(self.__upload)
+        with self.lock:
+            return random.choice(self.__upload)
     @property
     def get_resource(self):
-        return random.choice(self.__get_resource)
+        with self.lock:
+            return random.choice(self.__get_resource)
     @property
     def pay_resource(self):
-        return random.choice(self.__pay_resource)
+        with self.lock:
+            return random.choice(self.__pay_resource)
